@@ -1,7 +1,7 @@
 %% 
 % Load Parameters
 
-DIR = 'C:\Users\Sohaib Bhatti\OneDrive - The Cooper Union for the Advancement of Science and Art\Senior Spring\Data Driven Methods\SVD\Airfoil Analysis';
+DIR = '';
 
 paramsFile = fullfile(DIR,'airfoilDNS_parameters.h5');
 
@@ -16,12 +16,12 @@ pich_axis = h5read(paramsFile,'/pitch_axis'); % 0.5, midchord pitching
 %% 
 % Load grid and velocities
 
-BaseAngle = 30;
-freq = 0.35;
+BaseAngle = 25;
+freq = 0.05;
 tstep = 1;
 
 filenameGrid = fullfile(DIR,'airfoilDNS_grid.h5');
-filename = fullfile(DIR,'airfoilDNS_a25f0p35.h5');
+filename = fullfile(DIR,'airfoilDNS_a25f0p05.h5');
 
 x = h5read(filenameGrid,'/x');
 y = h5read(filenameGrid,'/y');
@@ -50,6 +50,7 @@ data = data-data_mean*ones(1,nt);
 %% 
 % Plot eigenvalues
 
+figure
 eigs = diag(S).^2;
 indices = 1:length(eigs);
 
@@ -105,24 +106,28 @@ sgtitle('Spatial Modes for uy')
 
 temporal_amplitudes = V(:, 1:num_plots);
 
-
-
 figure
 hold on
 
 xlabel("timestep")
 time = 0:(size(temporal_amplitudes, 1)-1);
 for i = 1:num_plots
+    subplot(rows, cols, i)
     plot(time, temporal_amplitudes(:, i))
 end
-legend('1','2','3','4','5','6')
+
+sgtitle('Temporal Amplitudes')
+
 %% 
 % Reconstructing snapshots
 
-r = [2, 4, 6];
+r = 4;
+videoFilename = 'reconstruction.avi';
+v = VideoWriter(videoFilename, 'Uncompressed AVI'); % Choose your desired format
+v.FrameRate = 10; % Adjust frame rate as needed
+open(v);
 
-
-for t = 1:nt
+for t = 1:((nt-1)/10):nt
     % Create a new figure for each frame to ensure consistent sizing
     fig = figure('Units', 'pixels', 'Position', [100, 100, 1920, 1080], 'Visible', 'off');
 

@@ -2,7 +2,7 @@
 clear; clc;
 
 % directory where data is stored
-DIR = 'C:\Users\Sohaib Bhatti\OneDrive - The Cooper Union for the Advancement of Science and Art\Senior Spring\Data Driven Methods\SVD\Airfoil Analysis';
+DIR = '';
 
 paramsFile = fullfile(DIR,'airfoilDNS_parameters.h5');
 
