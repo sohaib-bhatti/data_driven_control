@@ -11,7 +11,7 @@ Dawson has an implementation of a DMD included with the airfoil data. The algori
 $$\mathbf{X} \approx \mathbf{\tilde{U}\tilde{\Sigma}\tilde{V}^*}$$
 2. Compute the pseudo-inverse of $\mathbf{X}$ to find $\mathbf{A}$
 $$\mathbf{A} = \mathbf{X'\tilde{V}\tilde{\Sigma}^-1\tilde{U}^\*}$$
-$$\mathbf{\tilde{A}} = \mathbf{\tilde{U}^\*A\tilde{U}} = \mathbf{\tilde{U}^\*X'\tilde{V}\tilde{\Sigma}^-1}$$
+$$\mathbf{\tilde{A}} = \mathbf{\tilde{U}^\*A\tilde{U}} = \mathbf{\tilde{U}^\*X'\tilde{V}\tilde{\Sigma}^(-1)}$$
 3. Find the eigendecomposition of $\mathbf{\tilde{A}}$
 $$\mathbf{\tilde{A}W} = \mathbf{W\Lambda}$$
 4. Find the DMD modes
