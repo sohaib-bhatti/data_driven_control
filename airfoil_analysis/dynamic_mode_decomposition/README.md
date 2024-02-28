@@ -8,10 +8,10 @@ We will conduct a DMD on Scott Dawson's pitching airfoil CFD data to obtain spat
 Dawson has an implementation of a DMD included with the airfoil data. The algorithm is as follows[^1]:
 
 1. Conduct a singular value decomposition (SVD) on X
-$$\mathbf{X} \approx \mathbf{\tilde{U}\tilde{\Sigma}\tilde{V}*}$$
+$$\mathbf{X} \approx \mathbf{\tilde{U}\tilde{\Sigma}\tilde{V}^*}$$
 2. Compute the pseudo-inverse of $\mathbf{X}$ to find $\mathbf{A}$
-$$\mathbf{A} = \mathbf{X'\tilde{V}\tilde{\Sigma}^-1\tilde{U}\*}$$
-$$\mathbf{\tilde{A}} = \mathbf{\tilde{U}\*A\tilde{U}} = \mathbf{\tilde{U}\*X'\tilde{V}\tilde{\Sigma}^-1}$$
+$$\mathbf{A} = \mathbf{X'\tilde{V}\tilde{\Sigma}^-1\tilde{U}^\*}$$
+$$\mathbf{\tilde{A}} = \mathbf{\tilde{U}^\*A\tilde{U}} = \mathbf{\tilde{U}^\*X'\tilde{V}\tilde{\Sigma}^-1}$$
 3. Find the eigendecomposition of $\mathbf{\tilde{A}}$
 $$\mathbf{\tilde{A}W} = \mathbf{W\Lambda}$$
 4. Find the DMD modes
