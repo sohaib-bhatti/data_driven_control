@@ -23,3 +23,5 @@ Dawson's implementation returns $\mathbf{\Phi}$, $\mathbf{\Lambda}$, $\mathbf{\t
 
 # Analysis
 A DMD was conducted on a data matrix with the x and y velocities of the flow field. It resulted in the following graphs.
+
+![alt text](.images/frequencies.png)
