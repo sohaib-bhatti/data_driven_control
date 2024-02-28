@@ -20,3 +20,6 @@ $$\mathbf{\phi} = \mathbf{X'\tilde{V}\tilde{\Sigma}^{-1}W}$$
 Dawson's implementation returns $\mathbf{\Phi}$, $\mathbf{\Lambda}$, $\mathbf{\tilde{A}}$, and the amplitudes.
 
 [^1]: Brunton, S. L., & Kutz, J. N. (2022). Data-driven science and engineering machine learning, Dynamical Systems, and Control. Cambridge University Press. 
+
+# Analysis
+A DMD was conducted on a data matrix with the x and y velocities of the flow field. It resulted in the following graphs.
