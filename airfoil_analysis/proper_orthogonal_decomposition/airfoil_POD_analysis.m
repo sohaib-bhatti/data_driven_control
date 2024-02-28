@@ -111,13 +111,15 @@ hold on
 
 xlabel("timestep")
 time = 0:(size(temporal_amplitudes, 1)-1);
+h5create('temporal_amplitudes.h5','/temporal_amplitudes',size(temporal_amplitudes))
+h5write('temporal_amplitudes.h5', '/temporal_amplitudes', temporal_amplitudes)
 for i = 1:num_plots
     subplot(rows, cols, i)
     plot(time, temporal_amplitudes(:, i))
 end
 
 sgtitle('Temporal Amplitudes')
-
+h5disp("temporal_amplitudes.h5")
 %% 
 % Reconstructing snapshots
 

@@ -43,15 +43,15 @@ switch nargin
     case 2
         textcolor=varargin{1};
         contrast_ratio=varargin{2};
-        dark_bkg_assumption= ones(1,3)*0.16;
+        dark_bkg_assumption= ones(1,3)*(13/255);
     case 1
         textcolor=varargin{1};
         contrast_ratio=4.5;
-        dark_bkg_assumption= ones(1,3)*0.16;
+        dark_bkg_assumption= ones(1,3)*(17/255);
     otherwise
         textcolor=[1,1,1];
         contrast_ratio=4.5;
-        dark_bkg_assumption= ones(1,3)*0;
+        dark_bkg_assumption= ones(1,3)*(23/255);
 end
 
 tcd = [{textcolor} , {contrast_ratio} , {dark_bkg_assumption}];
