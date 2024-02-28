@@ -15,6 +15,6 @@ $$\mathbf{\tilde{A}} = \mathbf{\tilde{U}^\*A\tilde{U}} = \mathbf{\tilde{U}^\*X'\
 3. Find the eigendecomposition of $\mathbf{\tilde{A}}$
 $$\mathbf{\tilde{A}W} = \mathbf{W\Lambda}$$
 4. Find the DMD modes
-$$\mathbf{\phi} = \mathbf{X'\tilde{V}\tilde(\Sigma}^-1W}$$
+$$\mathbf{\phi} = \mathbf{X'\tilde{V}\tilde{\Sigma}^-1W}$$
 
 [^1]: Brunton, S. L., & Kutz, J. N. (2022). Data-driven science and engineering machine learning, Dynamical Systems, and Control. Cambridge University Press. 
