@@ -15,7 +15,7 @@ $$\mathbf{\tilde{A}} = \mathbf{\tilde{U}^\*A\tilde{U}} = \mathbf{\tilde{U}^\*X'\
 3. Find the eigendecomposition of $\mathbf{\tilde{A}}$
 $$\mathbf{\tilde{A}W} = \mathbf{W\Lambda}$$
 4. Find the DMD modes
-$$\mathbf{\phi} = \mathbf{X'\tilde{V}\tilde{\Sigma}^{-1}W}$$
+$$\mathbf{\Phi} = \mathbf{X'\tilde{V}\tilde{\Sigma}^{-1}W}$$
 
 Dawson's implementation returns $\mathbf{\Phi}$, $\mathbf{\Lambda}$, $\mathbf{\tilde{A}}$, and the amplitudes.
 
@@ -25,3 +25,8 @@ Dawson's implementation returns $\mathbf{\Phi}$, $\mathbf{\Lambda}$, $\mathbf{\t
 A DMD was conducted on a data matrix with the x and y velocities of the flow field. It resulted in the following graphs.
 
 ![image](https://github.com/sohaib-bhatti/data_driven_control/assets/44452143/810e8a21-8d56-4873-827f-b06a7a3fb292)
+
+This is 
+
+![image](https://github.com/sohaib-bhatti/data_driven_control/assets/44452143/2ce27382-dba9-483b-a74c-d5aac07ab21a)
+
