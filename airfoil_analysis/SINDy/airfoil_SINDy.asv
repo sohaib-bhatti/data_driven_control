@@ -11,7 +11,7 @@ dXdt = diff(temporal_amplitudes)/dt;
 X = temporal_amplitudes(1:400,:);
 
 n = size(X, 2);
-lambda = 0.015;
+lambda = 0.000001;
 
 theta = construct_library(X, n, 2);
 Xi  = least_squares(theta, dXdt, lambda, n);
