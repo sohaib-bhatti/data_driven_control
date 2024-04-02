@@ -1,4 +1,4 @@
-DIR = 'C:\Users\Sohaib Bhatti\Documents\GitHub\data_driven_control\airfoil_analysis\proper_orthogonal_decomposition';
+DIR = 'C:\Users\Sohaib\Documents\GitHub\data_driven_control\airfoil_analysis\proper_orthogonal_decomposition';
 
 temporal_amplitudes = fullfile(DIR,'temporal_amplitudes.h5');
 params_file = fullfile(DIR,'airfoilDNS_parameters.h5');
@@ -11,7 +11,7 @@ dXdt = diff(temporal_amplitudes)/dt;
 X = temporal_amplitudes(1:400,:);
 
 n = size(X, 2);
-lambda = 0.015;
+lambda = 0.3;
 
 theta = construct_library(X, n, 2);
 Xi  = least_squares(theta, dXdt, lambda, n);

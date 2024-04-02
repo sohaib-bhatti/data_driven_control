@@ -38,19 +38,33 @@ def main():
 
     t = np.linspace(0, 3, num=1000)
 
+    # impulse response of G for ERA to use
     t, y = ct.impulse_response(G, t)
-    """fig1, ax1 = plt.subplots()
-    ax1.plot(t, y)
+    # add Gaussian noise to impulse response
+    noise = True
+    if noise:
+        y += np.random.normal(0, np.amax(y)*0.01, y.shape[0])
+
+    plt.figure(1)
+
+    plt.plot(t, y)
     plt.xlabel('Time')
     plt.ylabel('Response')
-    plt.title("AFM Impulse Response")
-    plt.show()"""
 
-    mco = int(np.floor((y.shape[0]-1)/2))
+    if noise:
+        plt.title("Noisy AFM Impulse Response")
+    else:
+        plt.title("AFM Impulse Response")
 
-    Ar, Br, Cr, Dr, HSVs = ERA(y, mco, mco, 10)
+    mco = int(np.floor((y.shape[0]-1)/2))  # dimension for Hankel matrix
+    ss_size = 100
 
+    # obtain state space realization from ERA
+    Ar, Br, Cr, Dr, HSVs = ERA(y, mco, mco, ss_size)
+
+    # construct system from ERA and plot frequency response for both systems
     sys_ERA = ct.ss(Ar, Br, Cr, Dr, 1)
+    plt.figure(2)
     mag, phase, omega = ct.bode([G, sys_ERA])
     plt.tight_layout()
 
@@ -62,6 +76,7 @@ def main():
 
     plt.sca(ax2)                 # phase plot
     plt.title("Frequency")
+    plt.xlabel("Frequency (krads/s)")
     plt.show()
 
 
@@ -72,6 +87,7 @@ def ERA(Y, m, n, r):
     H = np.zeros((m, n))
     H2 = np.zeros((m, n))
 
+    # construct Hankel matrices
     for i in range(m):
         for j in range(n):
             H[i, j] = Y[i + j]
@@ -87,8 +103,6 @@ def ERA(Y, m, n, r):
     Br = fractional_matrix_power(Sigma, -0.5) @ Ur.T @ H[:, :1]
     Cr = H[:1, :] @ Vr @ fractional_matrix_power(Sigma, -0.5)
     HSVs = S
-    print(Y)
-    print(H)
     return Ar, Br, Cr, Dr, HSVs
 
 
