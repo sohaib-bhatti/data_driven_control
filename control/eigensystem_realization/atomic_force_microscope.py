@@ -36,18 +36,18 @@ def main():
          (s**2 + 2*z3*w3*s + w3**2) *
          (s**2 + 2*z5*w5*s + w5**2))
 
-    # toy problem to test ERA out
-    G = 1/(s + 1)
-
-    t = np.linspace(0, 3, num=3001)
-    print(t)
+    start_time = 0
+    end_time = 3
+    num_steps = 3001
+    t = np.linspace(start_time, end_time, num=num_steps)
+    dt = (end_time - start_time) / (num_steps-1)
 
     # impulse response of G for ERA to use
     t_i, y = ct.impulse_response(G, t)
     # add Gaussian noise to impulse response
-    noise = False
+    noise = True
     if noise:
-        y += np.random.normal(0, np.amax(y)*0.01, y.shape[0])
+        y += np.random.normal(0, np.amax(y) * 0.01, y.shape[0])
 
     plt.figure(1)
 
@@ -61,32 +61,39 @@ def main():
         plt.title("AFM Impulse Response")
 
     mco = int(np.floor((y.shape[0]-1)/2))  # dimension for Hankel matrix
-    ss_size = 5
+    ss_size = 10
 
     # obtain state space realization from ERA
     Ar, Br, Cr, Dr, HSVs = ERA(y, mco, mco, ss_size)
 
     # construct system from ERA and plot frequency response for both systems
-    sys_ERA = ct.ss(Ar, Br, Cr, Dr, 10**-3)
+    sys_ERA = ct.ss(Ar, Br, Cr, Dr, dt) * dt
     t_i2, y_ERA = ct.impulse_response(sys_ERA, t)
-    #plt.plot(t_i2, y_ERA)
+    plt.plot(t_i2, y_ERA)
     plt.legend(["Transfer function", "ERA"])
-    plt.xlim([0, 3])
-    plt.ylim([-40000, 40000])
 
     plt.figure(2)
     mag, phase, omega = ct.bode([G, sys_ERA])
     plt.tight_layout()
 
-    ax1, ax2 = plt.gcf().axes     # get subplot axes
+    ax1, ax2 = plt.gcf().axes  # get subplot axes
 
-    plt.sca(ax1)                 # magnitude plot
+    plt.sca(ax1)  # magnitude plot
     plt.legend(["Transfer function", "ERA"])
     plt.title("Gain")
 
-    plt.sca(ax2)                 # phase plot
+    plt.sca(ax2)  # phase plot
     plt.title("Frequency")
     plt.xlabel("Frequency (krads/s)")
+
+    # plot the singular values to find appropriate rank for ERA
+    plt.figure(3)
+    plt.stem(HSVs)
+    plt.xlim([-1, 20])
+    plt.xlabel("Index")
+    plt.ylabel("Singular Value")
+    plt.title("Singular Values of the Hankel Matrix")
+
     plt.show()
 
 
