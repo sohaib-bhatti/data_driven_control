@@ -36,18 +36,22 @@ def main():
          (s**2 + 2*z3*w3*s + w3**2) *
          (s**2 + 2*z5*w5*s + w5**2))
 
-    t = np.linspace(0, 3, num=1000)
+    # toy problem to test ERA out
+    G = 1/(s + 1)
+
+    t = np.linspace(0, 3, num=3001)
+    print(t)
 
     # impulse response of G for ERA to use
-    t, y = ct.impulse_response(G, t)
+    t_i, y = ct.impulse_response(G, t)
     # add Gaussian noise to impulse response
-    noise = True
+    noise = False
     if noise:
         y += np.random.normal(0, np.amax(y)*0.01, y.shape[0])
 
     plt.figure(1)
 
-    plt.plot(t, y)
+    plt.plot(t_i, y)
     plt.xlabel('Time')
     plt.ylabel('Response')
 
@@ -57,13 +61,19 @@ def main():
         plt.title("AFM Impulse Response")
 
     mco = int(np.floor((y.shape[0]-1)/2))  # dimension for Hankel matrix
-    ss_size = 100
+    ss_size = 5
 
     # obtain state space realization from ERA
     Ar, Br, Cr, Dr, HSVs = ERA(y, mco, mco, ss_size)
 
     # construct system from ERA and plot frequency response for both systems
-    sys_ERA = ct.ss(Ar, Br, Cr, Dr, 1)
+    sys_ERA = ct.ss(Ar, Br, Cr, Dr, 10**-3)
+    t_i2, y_ERA = ct.impulse_response(sys_ERA, t)
+    #plt.plot(t_i2, y_ERA)
+    plt.legend(["Transfer function", "ERA"])
+    plt.xlim([0, 3])
+    plt.ylim([-40000, 40000])
+
     plt.figure(2)
     mag, phase, omega = ct.bode([G, sys_ERA])
     plt.tight_layout()
