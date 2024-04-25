@@ -35,7 +35,7 @@ def main():
          (s**2 + 2*z2*w2*s + w2**2) *
          (s**2 + 2*z3*w3*s + w3**2) *
          (s**2 + 2*z5*w5*s + w5**2))
-
+    
     start_time = 0
     end_time = 3
     num_steps = 3001
@@ -61,7 +61,7 @@ def main():
         plt.title("AFM Impulse Response")
 
     mco = int(np.floor((y.shape[0]-1)/2))  # dimension for Hankel matrix
-    ss_size = 10
+    ss_size = 6
 
     # obtain state space realization from ERA
     Ar, Br, Cr, Dr, HSVs = ERA(y, mco, mco, ss_size)
@@ -109,6 +109,8 @@ def ERA(Y, m, n, r):
         for j in range(n):
             H[i, j] = Y[i + j]
             H2[i, j] = Y[i + j + 1]
+
+    print(m)
 
     U, S, VT = np.linalg.svd(H, full_matrices=0)
     V = VT.T
