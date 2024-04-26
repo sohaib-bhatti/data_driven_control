@@ -3,18 +3,21 @@ from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 import pysindy as ps
 import do_mpc
+import casadi
 
 
 def main():
     t_start = 0
     t_stop = 60
-    x0 = [5, -1]
+    x0 = [2, -2, 3, 0.2]
     num_samples = 1000
     t = np.linspace(t_start, t_stop, num=num_samples)
 
     ts = (t_stop-t_start)/num_samples
 
     x = odeint(diff, x0, t)
+
+    print("diff done!")
 
     x_sindy, x_dot_sindy, model = sindy(x, t)
 
@@ -23,63 +26,52 @@ def main():
     model.print()
     print("coefficients: %s", model.coefficients().T)
 
-    state_CL, u_CL = mpc_ss(model.coefficients().T, x0, ts, num_samples)
-
-    x_CL = state_CL[:, 0]
-
     plt.figure(1)
 
+    plt.subplot(2, 1, 1)
     plt.plot(t, x[:, 0])
     plt.plot(t, sim[:, 0], linestyle='dashed')
 
-    plt.title('mass spring displacement')
+    plt.title('cart displacement')
     plt.xlabel('t (s)')
     plt.ylabel('x (m)')
     plt.legend(["x", "x_sindy"])
     plt.grid()
 
-    plt.figure(2)
-
+    plt.subplot(2, 1, 2)
     plt.plot(t, x[:, 1])
     plt.plot(t, sim[:, 1], linestyle='dashed')
 
-    plt.title('mass spring velocity')
+    plt.title('pendulum angle')
     plt.xlabel('t (s)')
-    plt.ylabel('x_dot (m/s)')
-    plt.legend(["x_dot", "x_dot_sindy"])
-    plt.grid()
-
-    plt.figure(3)
-
-    plt.subplot(2, 1, 1)
-    plt.plot(t, x_CL)
-    plt.title('closed loop')
-    plt.xlabel('t (s)')
-    plt.ylabel('x (m)')
-    plt.legend(["x"])
-    plt.grid()
-    plt.ylim([-6, 6])
-
-    plt.subplot(2, 1, 2)
-    plt.plot(t, u_CL)
-    plt.title('input force')
-    plt.xlabel('t (s)')
-    plt.ylabel('f (N/kg)')
-    plt.legend(["u"])
+    plt.ylabel('theta (rad)')
+    plt.legend(["theta", "theta_sindy"])
     plt.grid()
 
     plt.show()
 
-
 def diff(x, t):
-    c = 0.1  # Ns/m
-    k = 8  # N/m
-    m = 2  # kg
-    F = 0
-    dx1dt = x[1]
-    dx2dt = (F - c*x[1] - k*x[0])/m
+    # dynamics obtained from Feedback Systems by Astrom and Murray
+    M = 2  # mass of cart, kg
+    m = 0.3  # mass of pendulum, kg
+    m_t = M + m
+    c = 0.1  # damping coefficients, N s/m
+    gamma = 0.1
+    l = 0.2  # length of pendulum, m
+    g = 10  # gravity, m/s^2
+    J = 1  # moment of inertia kg m^2
+    J_t = J + m * l**2
 
-    dxdt = [dx1dt, dx2dt]
+    u = 0
+
+    dxdt = x[2]
+    dTdt = x[3]
+    dx_dotdt = (-m*l**2*x[3] + m*g*(m*l**2/J_t)*np.sin(x[1])*np.cos(x[1]) - c*x[2]-gamma*l*m*np.cos(x[1])*x[3] + u) /\
+        (m_t - m*(m*l**2/J_t)*np.cos(x[1])**2)
+    dT_dotdt = (-m*l**2*np.sin(x[1])*np.cos(x[1])*x[3]**2 + m_t*g*l*np.sin(x[1]) - c*l*np.cos(x[1])*x[2] - gamma*(m_t/m)*x[3] + l*np.cos(x[1])*np.cos(x[1])*u) /\
+        (J_t*(m_t/m) - m*(l*np.cos(x[1])**2))
+
+    dxdt = [dxdt, dTdt, dx_dotdt, dT_dotdt]
     return dxdt
 
 
@@ -91,9 +83,12 @@ def sindy(x, t):
     # pylint: disable=protected-access
     x_dot = differentiation_method._differentiate(x, t)
 
+    feature_library = ps.FourierLibrary() + ps.PolynomialLibrary(2)
+
     model = ps.SINDy(optimizer=optimizer,
                      differentiation_method=differentiation_method,
-                     feature_names=["x", "x_dot"],
+                     feature_library=feature_library,
+                     feature_names=["x", "theta", "x_dot", "theta_dot"],
                      discrete_time=False)
     model.fit(x, t=t, ensemble=True)
 
@@ -129,13 +124,15 @@ def mpc_ss(ss, x0, ts, num_iters):
     u = model.set_variable(var_type='_u', var_name='u')
 
     A = np.vstack((ss[1], ss[2]))
+    print(A)
+    print("here!")
     B = np.array([0, 1])
 
     x_next = A@x + B@u
 
     model.set_rhs('x', x_next)
 
-    model.set_expression(expr_name='cost', expr=(x[0]+2)**2)
+    model.set_expression(expr_name='cost', expr=casadi.sum1(x**2))
 
     model.setup()
 
@@ -152,7 +149,7 @@ def mpc_ss(ss, x0, ts, num_iters):
     lterm = model.aux['cost']  # terminal cost
     # stage cost
 
-    mpc.set_rterm(u=1e-1)  # input penalty
+    mpc.set_rterm(u=1e-4)  # input penalty
 
     # set bounds
     mpc.bounds['lower', '_x', 'x'] = -20
@@ -174,7 +171,7 @@ def mpc_ss(ss, x0, ts, num_iters):
     simulator.set_param(**params_simulator)
     simulator.setup()
 
-    x0 = np.array([5, -5])
+    x0 = np.array([5, -1])
 
     mpc.x0 = x0
     simulator.x0 = x0
