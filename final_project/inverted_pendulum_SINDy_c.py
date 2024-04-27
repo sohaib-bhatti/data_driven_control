@@ -8,8 +8,8 @@ import casadi
 
 def main():
     t_start = 0
-    t_stop = 60
-    x0 = [2, -2, 3, 0.2]
+    t_stop = 1000
+    x0 = [0, -2, 0, 0]
     num_samples = 1000
     t = np.linspace(t_start, t_stop, num=num_samples)
 
@@ -50,6 +50,7 @@ def main():
 
     plt.show()
 
+
 def diff(x, t):
     # dynamics obtained from Feedback Systems by Astrom and Murray
     M = 2  # mass of cart, kg
@@ -83,7 +84,16 @@ def sindy(x, t):
     # pylint: disable=protected-access
     x_dot = differentiation_method._differentiate(x, t)
 
-    feature_library = ps.FourierLibrary() + ps.PolynomialLibrary(2)
+    functions = [lambda x: np.sin(x)**2,
+                 lambda x: np.cos(x)**2,
+                 lambda x: np.sin(x)**-2,
+                 lambda x: np.cos(x)**-2,
+                 ]
+    lib_custom = ps.CustomLibrary(library_functions=functions)
+
+    feature_library = ps.ConcatLibrary([ps.FourierLibrary(),
+                                        ps.PolynomialLibrary(2),
+                                        lib_custom])
 
     model = ps.SINDy(optimizer=optimizer,
                      differentiation_method=differentiation_method,

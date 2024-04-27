@@ -7,7 +7,7 @@ import do_mpc
 
 def main():
     t_start = 0
-    t_stop = 60
+    t_stop = 100
     x0 = [5, -1]
     num_samples = 1000
     t = np.linspace(t_start, t_stop, num=num_samples)
@@ -24,8 +24,10 @@ def main():
     print("coefficients: %s", model.coefficients().T)
 
     state_CL, u_CL = mpc_ss(model.coefficients().T, x0, ts, num_samples)
+    state_CL_original = odeint(diff_CL, (x0, u_CL), t)
 
     x_CL = state_CL[:, 0]
+    x_CL_original = state_CL_original[:, 0]
 
     plt.figure(1)
 
@@ -53,11 +55,11 @@ def main():
 
     plt.subplot(2, 1, 1)
     plt.plot(t, x_CL)
+    plt.plot(t, x_CL_original)
     plt.title('closed loop')
     plt.xlabel('t (s)')
     plt.ylabel('x (m)')
-    plt.legend(["x"])
-    plt.grid()
+    plt.legend(["x_sindy", "x_original"])
     plt.ylim([-6, 6])
 
     plt.subplot(2, 1, 2)
@@ -76,6 +78,18 @@ def diff(x, t):
     k = 8  # N/m
     m = 2  # kg
     F = 0
+    dx1dt = x[1]
+    dx2dt = (F - c*x[1] - k*x[0])/m
+
+    dxdt = [dx1dt, dx2dt]
+    return dxdt
+
+
+def diff_CL(x, t, u):
+    c = 0.1  # Ns/m
+    k = 8  # N/m
+    m = 2  # kg
+    F = u*m
     dx1dt = x[1]
     dx2dt = (F - c*x[1] - k*x[0])/m
 
@@ -157,8 +171,8 @@ def mpc_ss(ss, x0, ts, num_iters):
     # set bounds
     mpc.bounds['lower', '_x', 'x'] = -20
     mpc.bounds['upper', '_x', 'x'] = 20
-    mpc.bounds['lower', '_u', 'u'] = -20
-    mpc.bounds['upper', '_u', 'u'] = 20
+    mpc.bounds['lower', '_u', 'u'] = -2
+    mpc.bounds['upper', '_u', 'u'] = 2
 
     mpc.set_objective(mterm=mterm, lterm=lterm)
 
