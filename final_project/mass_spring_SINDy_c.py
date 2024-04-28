@@ -3,9 +3,15 @@ from scipy.integrate import odeint
 import matplotlib.pyplot as plt
 import pysindy as ps
 import do_mpc
+import control.matlab as ct
 
 
 def main():
+    # coefficients
+    k = 8  # N/m
+    c = 0.1  # Ns/m
+    m = 2  # kg
+
     t_start = 0
     t_stop = 100
     x0 = [5, -1]
@@ -14,7 +20,7 @@ def main():
 
     ts = (t_stop-t_start)/num_samples
 
-    x = odeint(diff, x0, t)
+    x = odeint(diff, x0, t, args=(k, c, m))
 
     x_sindy, x_dot_sindy, model = sindy(x, t)
 
@@ -23,11 +29,17 @@ def main():
     model.print()
     print("coefficients: %s", model.coefficients().T)
 
+    A = np.array([[0, 1], [-k/m, -c/m]])
+    B = np.array([[0], [1/m]])
+    C = np.array([[1, 0]])
+    D = 0
+
+    sys = ct.ss(A, B, C, D)
+
     state_CL, u_CL = mpc_ss(model.coefficients().T, x0, ts, num_samples)
-    state_CL_original = odeint(diff_CL, (x0, u_CL), t)
 
     x_CL = state_CL[:, 0]
-    x_CL_original = state_CL_original[:, 0]
+    x_CL_original, t_sim, x_sim = ct.lsim(sys, U=u_CL*m, T=t, X0=x0)
 
     plt.figure(1)
 
@@ -73,10 +85,7 @@ def main():
     plt.show()
 
 
-def diff(x, t):
-    c = 0.1  # Ns/m
-    k = 8  # N/m
-    m = 2  # kg
+def diff(x, t, k, c, m):
     F = 0
     dx1dt = x[1]
     dx2dt = (F - c*x[1] - k*x[0])/m
@@ -85,20 +94,8 @@ def diff(x, t):
     return dxdt
 
 
-def diff_CL(x, t, u):
-    c = 0.1  # Ns/m
-    k = 8  # N/m
-    m = 2  # kg
-    F = u*m
-    dx1dt = x[1]
-    dx2dt = (F - c*x[1] - k*x[0])/m
-
-    dxdt = [dx1dt, dx2dt]
-    return dxdt
-
-
 def sindy(x, t):
-    optimizer = ps.optimizers.STLSQ(threshold=1e-8,
+    optimizer = ps.optimizers.STLSQ(threshold=1e-2,
                                     max_iter=20000)
 
     differentiation_method = ps.differentiation.FiniteDifference()
@@ -114,36 +111,16 @@ def sindy(x, t):
     return x, x_dot, model
 
 
-def mpc(ss):
-    model = do_mpc.model.Model('continuous')
-
-    x = model.set_variable(var_type='_x', var_name='x', shape=(1, 1))
-    x_dot = model.set_variable(var_type='_x', var_name='x_dot', shape=(1, 1))
-
-    f = model.set_variable(var_type='_u', var_name='f')
-
-    model.set_rhs('dx', ss[1][0]*x + ss[1][1]*x_dot)
-    model.set_rhs('dx_dot', ss[2][0]*x + ss[2][1]*x_dot + f)
-
-    model.setup()
-
-    mpc = do_mpc.controller.MPC(model)
-
-    setup_mpc = {'n_horizon': 20,
-                 't_step': 0.1,
-                 'n_robust': 1,
-                 'store_full_solution': True, }
-    mpc.set_param(**setup_mpc)
-
-
 def mpc_ss(ss, x0, ts, num_iters):
     model = do_mpc.model.Model('continuous')
 
     x = model.set_variable(var_type='_x', var_name='x', shape=(2, 1))
     u = model.set_variable(var_type='_u', var_name='u')
 
-    A = np.vstack((ss[1], ss[2]))
+    A = np.vstack(([0, ss[2][0]], [ss[1][1], ss[2][1]]))
     B = np.array([0, 1])
+
+    print(A)
 
     x_next = A@x + B@u
 
@@ -166,13 +143,13 @@ def mpc_ss(ss, x0, ts, num_iters):
     lterm = model.aux['cost']  # terminal cost
     # stage cost
 
-    mpc.set_rterm(u=1e-1)  # input penalty
+    mpc.set_rterm(u=1e-4)  # input penalty
 
     # set bounds
     mpc.bounds['lower', '_x', 'x'] = -20
     mpc.bounds['upper', '_x', 'x'] = 20
-    mpc.bounds['lower', '_u', 'u'] = -2
-    mpc.bounds['upper', '_u', 'u'] = 2
+    mpc.bounds['lower', '_u', 'u'] = -8
+    mpc.bounds['upper', '_u', 'u'] = 8
 
     mpc.set_objective(mterm=mterm, lterm=lterm)
 
@@ -188,7 +165,7 @@ def mpc_ss(ss, x0, ts, num_iters):
     simulator.set_param(**params_simulator)
     simulator.setup()
 
-    x0 = np.array([5, -5])
+    x0 = np.array([5, 1])
 
     mpc.x0 = x0
     simulator.x0 = x0
